@@ -4,26 +4,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rambu Rentals | Digital Property Catalog</title>
+    <title>Rambu Rentals | Your Key to Luxury Living</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                gold: '#D4AF37',
+                'gold-light': '#F1E5AC',
+                black: '#0A0A0A',
+              }
+            },
+            fontFamily: {
+              serif: ['Playfair Display', 'serif'],
+            }
+          }
+        }
+      }
+    </script>
     <style>
       body {
         font-family: 'Inter', sans-serif;
         -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+        background-color: #0A0A0A;
+        color: white;
       }
-      /* Smooth transitions for filtering */
-      .property-grid-enter {
-        opacity: 0;
-        transform: translateY(20px);
+      .gold-gradient {
+        background: linear-gradient(135deg, #D4AF37 0%, #F1E5AC 50%, #D4AF37 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
-      .property-grid-enter-active {
-        opacity: 1;
-        transform: translateY(0);
-        transition: opacity 500ms, transform 500ms;
+      .gold-bg-gradient {
+        background: linear-gradient(135deg, #D4AF37 0%, #F1E5AC 50%, #D4AF37 100%);
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
       }
     </style>
   <script type="importmap">
@@ -38,7 +58,7 @@
 }
 </script>
 </head>
-  <body class="bg-[#FDFDFD] text-gray-900">
+  <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

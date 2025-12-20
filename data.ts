@@ -10,7 +10,9 @@ export const PROPERTIES: Property[] = [
     bedrooms: 3,
     isAvailable: true,
     imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80',
-    type: 'Apartment'
+    type: 'Apartment',
+    description: 'A stunning contemporary apartment located in the heart of Lavington. This unit offers spacious living areas, high-end finishes, and a serene balcony view. Perfect for families looking for a balance of luxury and comfort.',
+    amenities: ['24/7 Security', 'Elevator', 'Gym', 'Ample Parking', 'Borehole Water', 'Backup Generator']
   },
   {
     id: '2',
@@ -20,7 +22,9 @@ export const PROPERTIES: Property[] = [
     bedrooms: 2,
     isAvailable: false,
     imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80',
-    type: 'Apartment'
+    type: 'Apartment',
+    description: 'Elegantly furnished 2-bedroom unit in a secure gated community. Ideal for professionals or small families.',
+    amenities: ['CCTV Surveillance', 'Balcony', 'Modern Kitchen', 'High Speed Internet Ready']
   },
   {
     id: '3',
@@ -30,17 +34,9 @@ export const PROPERTIES: Property[] = [
     bedrooms: 5,
     isAvailable: true,
     imageUrl: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80',
-    type: 'Villa'
-  },
-  {
-    id: '4',
-    title: 'Serene 4 Bedroom Townhouse',
-    location: 'Kitisuru',
-    price: 280000,
-    bedrooms: 4,
-    isAvailable: true,
-    imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-    type: 'Townhouse'
+    type: 'Villa',
+    description: 'An architectural masterpiece in the prestigious Kitisuru area. This 5-bedroom mansion sits on a half-acre lot with beautifully manicured gardens, a private swimming pool, and servant quarters.',
+    amenities: ['Private Pool', 'Sprawling Garden', 'Home Office', 'Gated Security', 'Solar Water Heating', 'Staff Quarters']
   },
   {
     id: '5',
@@ -50,67 +46,9 @@ export const PROPERTIES: Property[] = [
     bedrooms: 1,
     isAvailable: true,
     imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80',
-    type: 'Studio'
-  },
-  {
-    id: '6',
-    title: 'Modern 2 Bedroom Muthiga',
-    location: 'Muthiga',
-    price: 60000,
-    bedrooms: 2,
-    isAvailable: true,
-    imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80',
-    type: 'Apartment'
-  },
-  {
-    id: '7',
-    title: 'Waiyaki Way Cozy 1BR',
-    location: 'Waiyaki Way',
-    price: 45000,
-    bedrooms: 1,
-    isAvailable: true,
-    imageUrl: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=800&q=80',
-    type: 'Apartment'
-  },
-  {
-    id: '8',
-    title: 'Premium 3 Bedroom Penthouse',
-    location: 'Lavington',
-    price: 180000,
-    bedrooms: 3,
-    isAvailable: true,
-    imageUrl: 'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?auto=format&fit=crop&w=800&q=80',
-    type: 'Penthouse'
-  },
-  {
-    id: '9',
-    title: 'Waiyaki Executive 2BR',
-    location: 'Waiyaki Way',
-    price: 75000,
-    bedrooms: 2,
-    isAvailable: false,
-    imageUrl: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=800&q=80',
-    type: 'Apartment'
-  },
-  {
-    id: '10',
-    title: 'Luxury 4BR Villa',
-    location: 'Lavington',
-    price: 320000,
-    bedrooms: 4,
-    isAvailable: true,
-    imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
-    type: 'Villa'
-  },
-  {
-    id: '11',
-    title: 'Charming Muthiga Cottage',
-    location: 'Muthiga',
-    price: 55000,
-    bedrooms: 2,
-    isAvailable: true,
-    imageUrl: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80',
-    type: 'Cottage'
+    type: 'Studio',
+    description: 'Conveniently located studio along Waiyaki Way. Perfect for commuters looking for an affordable yet modern living space with easy access to the city.',
+    amenities: ['Secure Parking', 'Rooftop Access', 'Tokens Meter', 'Reliable Water Supply']
   },
   {
     id: '12',
@@ -120,6 +58,8 @@ export const PROPERTIES: Property[] = [
     bedrooms: 5,
     isAvailable: true,
     imageUrl: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80',
-    type: 'Mansion'
+    type: 'Mansion',
+    description: 'The pinnacle of East African living. This expansive estate features a grand entrance, multiple living rooms, and a state-of-the-art kitchen. Luxury defined.',
+    amenities: ['Smart Home System', 'Wine Cellar', 'Infinity Pool', 'CCTV Monitoring', 'Electric Fencing']
   }
 ];

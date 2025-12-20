@@ -12,6 +12,8 @@ export interface Property {
   isAvailable: boolean;
   imageUrl: string;
   type: string;
+  description: string;
+  amenities: string[];
 }
 
 export interface Filters {
