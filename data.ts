@@ -91,5 +91,35 @@ export const PROPERTIES: Property[] = [
     isAvailable: false,
     imageUrl: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=800&q=80',
     type: 'Apartment'
+  },
+  {
+    id: '10',
+    title: 'Luxury 4BR Villa',
+    location: 'Lavington',
+    price: 320000,
+    bedrooms: 4,
+    isAvailable: true,
+    imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
+    type: 'Villa'
+  },
+  {
+    id: '11',
+    title: 'Charming Muthiga Cottage',
+    location: 'Muthiga',
+    price: 55000,
+    bedrooms: 2,
+    isAvailable: true,
+    imageUrl: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80',
+    type: 'Cottage'
+  },
+  {
+    id: '12',
+    title: 'Kitisuru 5BR Estate',
+    location: 'Kitisuru',
+    price: 550000,
+    bedrooms: 5,
+    isAvailable: true,
+    imageUrl: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80',
+    type: 'Mansion'
   }
 ];
