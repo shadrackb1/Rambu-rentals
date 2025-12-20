@@ -3,16 +3,19 @@ import React from 'react';
 
 const PropertySkeleton: React.FC = () => {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 animate-pulse">
-      <div className="h-48 bg-gray-200"></div>
-      <div className="p-4 space-y-3">
-        <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-        <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-        <div className="flex justify-between items-center pt-2">
-          <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+    <div className="flex flex-col animate-pulse">
+      <div className="aspect-[4/5] bg-white/5 rounded-2xl mb-5 border border-white/5"></div>
+      <div className="space-y-4 px-1">
+        <div className="h-3 bg-white/5 rounded w-1/4"></div>
+        <div className="h-8 bg-white/5 rounded w-3/4"></div>
+        <div className="flex gap-2">
+          <div className="h-3 bg-white/5 rounded w-16"></div>
+          <div className="h-3 bg-white/5 rounded w-16"></div>
         </div>
-        <div className="h-10 bg-gray-200 rounded w-full mt-4"></div>
+        <div className="pt-4 border-t border-white/5 flex justify-between">
+          <div className="h-8 bg-white/5 rounded w-1/3"></div>
+          <div className="w-8 h-8 rounded-full bg-white/5"></div>
+        </div>
       </div>
     </div>
   );
@@ -20,7 +23,7 @@ const PropertySkeleton: React.FC = () => {
 
 export const ListingSkeleton: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4 md:p-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
       {[...Array(6)].map((_, i) => (
         <PropertySkeleton key={i} />
       ))}

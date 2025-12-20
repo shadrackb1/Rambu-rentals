@@ -1,14 +1,29 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { PROPERTIES } from './data';
+import { PROPERTIES as INITIAL_PROPERTIES } from './data';
 import { Filters, Location, PriceRange, BedCount, Property } from './types';
 import PropertyCard from './components/PropertyCard';
 import { ListingSkeleton } from './components/Skeleton';
 import { Logo } from './components/Logo';
+import ListingUpload from './components/ListingUpload';
+import AdminPanel from './components/AdminPanel';
 
 const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
+  const [properties, setProperties] = useState<Property[]>(INITIAL_PROPERTIES);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [showUpload, setShowUpload] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  
+  // Site-wide editable content
+  const [siteContent, setSiteContent] = useState({
+    heroTitle: "Nairobi's Most Respected Addresses.",
+    heroSubtitle: "Curated luxury properties in Kitisuru, Lavington, and Westlands. Measured by excellence, defined by service.",
+    whatsappNumber: "254724668338",
+    instagramUrl: "https://www.instagram.com/ramburentals"
+  });
+
   const [filters, setFilters] = useState<Filters>({
     location: 'All',
     priceRange: 'All',
@@ -16,17 +31,15 @@ const App: React.FC = () => {
     availableOnly: false
   });
 
-  const WHATSAPP_NUMBER = "254724668338";
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1800);
+    }, 1200);
     return () => clearTimeout(timer);
   }, []);
 
   const filteredProperties = useMemo(() => {
-    return PROPERTIES.filter(p => {
+    return properties.filter(p => {
       const locationMatch = filters.location === 'All' || p.location === filters.location;
       
       let priceMatch = true;
@@ -44,7 +57,7 @@ const App: React.FC = () => {
       
       return locationMatch && priceMatch && bedMatch && availabilityMatch;
     });
-  }, [filters]);
+  }, [filters, properties]);
 
   const updateFilter = (key: keyof Filters, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -52,305 +65,373 @@ const App: React.FC = () => {
 
   const handleInquiry = (p: Property) => {
     const text = encodeURIComponent(`Hi Rambu Rentals, I'm interested in the "${p.title}" in ${p.location} (KES ${p.price.toLocaleString()}). Is it still available?`);
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank');
+    window.open(`https://wa.me/${siteContent.whatsappNumber}?text=${text}`, '_blank');
   };
 
-  const handleCall = () => {
-    window.open(`tel:+${WHATSAPP_NUMBER}`, '_self');
+  const handleNewListing = (newProperty: Property) => {
+    setProperties(prev => [newProperty, ...prev]);
   };
 
-  // --- RENDERING DETAIL VIEW ---
+  const handleUpdateProperty = (updated: Property) => {
+    setProperties(prev => prev.map(p => p.id === updated.id ? updated : p));
+  };
+
+  const handleDeleteProperty = (id: string) => {
+    setProperties(prev => prev.filter(p => p.id !== id));
+  };
+
+  const handleShare = async (p: Property) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Rambu Rentals | ${p.title}`,
+          text: `Check out this ${p.bedrooms} bedroom ${p.type} in ${p.location} via Rambu Rentals.`,
+          url: window.location.href,
+        });
+      } catch (err) { console.log(err); }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard');
+    }
+  };
+
+  const handleAdminLogin = () => {
+    const password = prompt("Enter Administration Credentials:");
+    if (password === "12345") {
+      setIsAdminAuthenticated(true);
+      setShowAdmin(true);
+    } else if (password !== null) {
+      alert("Unauthorized Access Attempt Blocked.");
+    }
+  };
+
+  if (showAdmin && isAdminAuthenticated) {
+    return (
+      <AdminPanel 
+        properties={properties} 
+        siteContent={siteContent}
+        onUpdateContent={setSiteContent}
+        onUpdateProperty={handleUpdateProperty}
+        onDeleteProperty={handleDeleteProperty}
+        onAddProperty={handleNewListing}
+        onClose={() => setShowAdmin(false)} 
+      />
+    );
+  }
+
   if (selectedProperty) {
     return (
-      <div className="min-h-screen bg-brand-black flex flex-col animate-in fade-in duration-500">
-        <header className="p-6 sm:p-8 flex items-center justify-between border-b border-white/5">
-          <button 
-            onClick={() => setSelectedProperty(null)}
-            className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white hover:bg-brand-gold hover:text-brand-black transition-all"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <Logo className="h-10 scale-75" />
-          <div className="w-12"></div> {/* Spacer */}
+      <div className="min-h-screen bg-brand-void text-white selection:bg-brand-gold/30">
+        <header className="sticky top-0 z-[100] bg-brand-void/80 backdrop-blur-xl border-b border-white/5">
+          <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <button 
+              onClick={() => setSelectedProperty(null)}
+              className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-brand-gold transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+              </svg>
+              Return
+            </button>
+            <div className="scale-75 cursor-pointer" onClick={() => setSelectedProperty(null)}>
+              <Logo />
+            </div>
+            <button 
+              onClick={() => handleShare(selectedProperty)}
+              className="w-10 h-10 rounded-full glass flex items-center justify-center text-white hover:bg-white/10 transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+            </button>
+          </div>
         </header>
 
-        <main className="flex-1 max-w-5xl mx-auto w-full p-4 sm:p-8 space-y-8 pb-32">
-          <div className="rounded-3xl overflow-hidden shadow-2xl h-[40vh] sm:h-[60vh] border border-white/5">
-            <img src={selectedProperty.imageUrl} className="w-full h-full object-cover" alt={selectedProperty.title} />
-          </div>
+        <main className="max-w-7xl mx-auto px-6 py-12 animate-reveal">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <div className="lg:col-span-8 space-y-12">
+              <section className="rounded-3xl overflow-hidden aspect-[16/9] shadow-2xl relative bg-black/40">
+                {selectedProperty.imageUrl.includes('video') ? (
+                  <video 
+                    src={selectedProperty.imageUrl} 
+                    controls 
+                    className="w-full h-full object-cover"
+                    poster={selectedProperty.imageUrl.replace('.mp4', '.jpg')}
+                  />
+                ) : (
+                  <img src={selectedProperty.imageUrl} className="w-full h-full object-cover" alt={selectedProperty.title} />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-void/80 to-transparent pointer-events-none"></div>
+                <div className="absolute bottom-10 left-10 pointer-events-none">
+                   <h1 className="text-4xl sm:text-6xl font-serif font-black mb-4 leading-tight">{selectedProperty.title}</h1>
+                   <div className="flex gap-4">
+                     <span className="bg-brand-gold text-brand-black px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Premium Portfolio</span>
+                     <span className="glass px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/20">Verified Agency</span>
+                   </div>
+                </div>
+              </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl sm:text-5xl font-serif font-black text-white">{selectedProperty.title}</h1>
-                  <p className="text-brand-gold font-black uppercase tracking-[0.2em] mt-2">{selectedProperty.location}, Nairobi</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Monthly Rent</p>
-                  <p className="text-3xl font-black text-brand-gold">KES {selectedProperty.price.toLocaleString()}</p>
-                </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {[
+                  { label: 'Bedrooms', value: selectedProperty.bedrooms, icon: '🏠' },
+                  { label: 'Property Type', value: selectedProperty.type, icon: '🏛️' },
+                  { label: 'Location', value: selectedProperty.location, icon: '📍' },
+                  { label: 'Agency Ref', value: `RR-${selectedProperty.id}`, icon: '🏷️' }
+                ].map((item, i) => (
+                  <div key={i} className="p-6 glass rounded-2xl border border-white/5">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">{item.label}</p>
+                    <p className="text-lg font-bold text-white">{item.value}</p>
+                  </div>
+                ))}
               </div>
 
-              <div className="flex gap-6 border-y border-white/5 py-6 overflow-x-auto scrollbar-hide">
-                 <div className="flex items-center gap-2 px-6 py-3 bg-white/5 rounded-2xl whitespace-nowrap">
-                   <span className="text-brand-gold font-black">{selectedProperty.bedrooms}</span>
-                   <span className="text-xs font-bold text-gray-400">Bedrooms</span>
-                 </div>
-                 <div className="flex items-center gap-2 px-6 py-3 bg-white/5 rounded-2xl whitespace-nowrap">
-                   <span className="text-brand-gold font-black">Verified</span>
-                   <span className="text-xs font-bold text-gray-400">Listing</span>
-                 </div>
-                 <div className="flex items-center gap-2 px-6 py-3 bg-white/5 rounded-2xl whitespace-nowrap">
-                   <span className="text-brand-gold font-black">Prime</span>
-                   <span className="text-xs font-bold text-gray-400">Location</span>
-                 </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold text-white uppercase tracking-wider">Property Description</h3>
-                <p className="text-gray-400 leading-relaxed font-medium">
-                  {selectedProperty.description}
+              <div className="space-y-6">
+                <h2 className="text-2xl font-serif font-bold text-white">Executive Summary</h2>
+                <p className="text-gray-400 text-lg leading-relaxed max-w-3xl">
+                  {selectedProperty.description || 'Professional property listing curated by Rambu Rentals.'}
                 </p>
               </div>
 
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold text-white uppercase tracking-wider">Top Amenities</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {selectedProperty.amenities.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-gray-300 font-bold text-sm">
-                      <svg className="w-5 h-5 text-brand-gold flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      {item}
+              <div className="space-y-8">
+                <h2 className="text-2xl font-serif font-bold text-white">Distinguished Amenities</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {(selectedProperty.amenities || ['24/7 Security']).map((amenity, idx) => (
+                    <div key={idx} className="flex items-center gap-4 p-5 glass rounded-2xl group hover:border-brand-gold/30 transition-all">
+                      <div className="w-2 h-2 rounded-full bg-brand-gold group-hover:scale-150 transition-transform"></div>
+                      <span className="text-sm font-bold text-gray-300">{amenity}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-[#151515] p-8 rounded-3xl border border-white/5 space-y-6 lg:sticky lg:top-32">
-                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-full gold-bg-gradient flex items-center justify-center text-black font-black text-xl">R</div>
-                    <div>
-                      <p className="text-sm font-black text-white">Rambu Rentals</p>
-                      <p className="text-xs font-bold text-emerald-500">Agent Active</p>
-                    </div>
-                 </div>
-                 <button 
-                  onClick={() => handleInquiry(selectedProperty)}
-                  className="w-full py-5 gold-bg-gradient text-brand-black font-black uppercase tracking-widest rounded-2xl transition-transform active:scale-95 shadow-lg shadow-brand-gold/20"
-                 >
-                   Inquire via WhatsApp
-                 </button>
-                 <button 
-                  onClick={handleCall}
-                  className="w-full py-5 bg-white text-brand-black font-black uppercase tracking-widest rounded-2xl transition-transform active:scale-95 shadow-lg shadow-white/5"
-                 >
-                   Call Agent
-                 </button>
-                 <p className="text-[10px] text-center text-gray-500 font-bold uppercase tracking-widest pt-2">Ref: RR-0{selectedProperty.id}</p>
+            <div className="lg:col-span-4">
+              <div className="sticky top-32 glass p-8 rounded-3xl border border-white/10 shadow-2xl space-y-8">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-2">Investment</p>
+                  <p className="text-4xl font-black text-brand-gold">{selectedProperty.price.toLocaleString()} <span className="text-xs uppercase text-gray-500">KES / Mo</span></p>
+                </div>
+
+                <div className="h-px bg-white/5"></div>
+
+                <div className="space-y-4">
+                  <button 
+                    onClick={() => handleInquiry(selectedProperty)}
+                    className="w-full py-5 gold-bg-gradient text-brand-black font-black uppercase tracking-widest rounded-2xl hover:brightness-110 active:scale-[0.98] transition-all shadow-xl shadow-brand-gold/10 flex items-center justify-center gap-3"
+                  >
+                    Connect with Agent
+                  </button>
+                  <button 
+                    onClick={() => window.open(`tel:+${siteContent.whatsappNumber}`, '_self')}
+                    className="w-full py-5 glass border border-white/10 text-white font-black uppercase tracking-widest rounded-2xl hover:bg-white/5 active:scale-[0.98] transition-all"
+                  >
+                    Direct Call
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-4 pt-4 border-t border-white/5">
+                  <div className="w-10 h-10 rounded-full gold-bg-gradient flex items-center justify-center text-brand-black font-black">R</div>
+                  <div>
+                    <p className="text-sm font-bold text-white">Rambu Concierge</p>
+                    <p className="text-[10px] font-black text-brand-gold uppercase tracking-widest">Active Now</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </main>
-
-        <div className="fixed bottom-0 left-0 right-0 p-4 lg:hidden bg-brand-black/80 backdrop-blur-md border-t border-white/5">
-           <button 
-             onClick={() => handleInquiry(selectedProperty)}
-             className="w-full py-5 gold-bg-gradient text-brand-black font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-brand-gold/20 flex items-center justify-center gap-3"
-           >
-             Book a Viewing
-           </button>
-        </div>
       </div>
     );
   }
 
-  // --- RENDERING LISTING VIEW ---
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Premium Hero Section */}
-      <header className="bg-brand-black py-16 px-6 sm:px-12 relative overflow-hidden">
-        {/* Subtle Background Elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-gold/5 rounded-full blur-[100px] -mr-20 -mt-20"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-gold/5 rounded-full blur-[80px] -ml-20 -mb-20"></div>
-
-        <div className="max-w-7xl mx-auto relative z-10 flex flex-col items-center text-center">
-          <Logo className="mb-12" />
-          
-          <h2 className="text-4xl sm:text-6xl md:text-8xl font-serif font-black text-white leading-tight mb-8">
-            Nairobi's Most <br/>
-            <span className="gold-gradient">Elite Residencies.</span>
-          </h2>
-          <p className="text-gray-400 font-bold text-lg sm:text-xl max-w-2xl leading-relaxed mb-12">
-            Over 3,300 verified listings across Kitisuru, Lavington, and beyond. 
-            Luxury living, curated just for you.
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
-             <div className="text-center">
-               <p className="text-3xl font-black text-white">3.3k+</p>
-               <p className="text-[10px] font-black text-brand-gold uppercase tracking-widest">Listings</p>
-             </div>
-             <div className="w-px h-12 bg-white/10 hidden sm:block"></div>
-             <div className="text-center">
-               <p className="text-3xl font-black text-white">12k+</p>
-               <p className="text-[10px] font-black text-brand-gold uppercase tracking-widest">Followers</p>
-             </div>
-             <div className="w-px h-12 bg-white/10 hidden sm:block"></div>
-             <div className="text-center">
-               <p className="text-3xl font-black text-white">100%</p>
-               <p className="text-[10px] font-black text-brand-gold uppercase tracking-widest">Verified</p>
-             </div>
+    <div className="min-h-screen bg-brand-void text-white">
+      {showUpload && <ListingUpload onClose={() => setShowUpload(false)} onSuccess={handleNewListing} />}
+      
+      {/* Dynamic Navigation Bar */}
+      <nav className="fixed top-0 left-0 right-0 z-[100] bg-brand-void/50 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <Logo className="scale-75 sm:scale-90" />
+          <div className="hidden md:flex items-center gap-10">
+            <a href="#" className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 hover:text-brand-gold transition-colors">Portfolio</a>
+            <a href="#" className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 hover:text-brand-gold transition-colors">Locations</a>
+            <button 
+              onClick={() => setShowUpload(true)}
+              className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-gold hover:text-white transition-colors"
+            >
+              List Property
+            </button>
           </div>
+          <a 
+            href={`https://wa.me/${siteContent.whatsappNumber}`} 
+            target="_blank"
+            className="hidden sm:block px-6 py-3 border border-brand-gold/50 text-brand-gold text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-brand-gold hover:text-brand-black transition-all"
+          >
+            Agent Chat
+          </a>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <header className="pt-40 pb-32 px-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-gold/5 rounded-full blur-[150px] -mr-40 -mt-40 pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
+           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12">
+              <div className="max-w-3xl space-y-8">
+                <div className="flex items-center gap-4 animate-reveal">
+                  <span className="w-12 h-px bg-brand-gold"></span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-brand-gold">Exquisite Living Redefined</span>
+                </div>
+                <h1 className="text-5xl sm:text-7xl md:text-9xl font-serif font-black leading-[0.9] tracking-tighter animate-reveal" style={{ animationDelay: '0.1s' }}>
+                  {siteContent.heroTitle.split('.').map((part, i) => part ? <span key={i}>{part}{i === 0 ? <br/> : ''}</span> : null)}
+                  <span className="gold-gradient italic"> Addresses.</span>
+                </h1>
+                <p className="text-lg sm:text-2xl text-gray-500 font-medium max-w-xl leading-relaxed animate-reveal" style={{ animationDelay: '0.2s' }}>
+                  {siteContent.heroSubtitle}
+                </p>
+              </div>
+              <div className="flex gap-10 lg:pb-10 animate-reveal" style={{ animationDelay: '0.3s' }}>
+                <div className="text-center">
+                  <p className="text-3xl font-black text-white">{properties.length}</p>
+                  <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mt-1">Managed Properties</p>
+                </div>
+                <div className="w-px h-10 bg-white/5"></div>
+                <div className="text-center">
+                  <p className="text-3xl font-black text-white">12k+</p>
+                  <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mt-1">Private Clients</p>
+                </div>
+              </div>
+           </div>
         </div>
       </header>
 
-      {/* Sticky Filter Controls */}
-      <div className="sticky top-0 z-40 bg-brand-black/95 backdrop-blur-xl border-y border-white/5 px-4 py-6 shadow-2xl overflow-x-auto scrollbar-hide">
+      {/* Minimalist Filter System */}
+      <section className="sticky top-20 z-50 px-6 pb-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-nowrap lg:grid lg:grid-cols-4 gap-4 min-w-[700px] lg:min-w-0">
-            {/* Location */}
-            <select 
-              value={filters.location}
-              onChange={(e) => updateFilter('location', e.target.value)}
-              className="flex-1 px-6 py-4 bg-[#1a1a1a] border border-white/5 focus:border-brand-gold/50 rounded-2xl font-black text-xs uppercase tracking-widest text-white outline-none"
-            >
-              <option value="All">All Locations</option>
-              <option value="Lavington">Lavington</option>
-              <option value="Kitisuru">Kitisuru</option>
-              <option value="Muthiga">Muthiga</option>
-              <option value="Waiyaki Way">Waiyaki Way</option>
-            </select>
+          <div className="glass p-2 rounded-[2rem] flex flex-col md:flex-row items-stretch md:items-center gap-2 shadow-2xl">
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <select 
+                value={filters.location}
+                onChange={(e) => updateFilter('location', e.target.value)}
+                className="bg-transparent px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white outline-none border-none hover:bg-white/5 rounded-2xl transition-all cursor-pointer"
+              >
+                <option value="All" className="bg-brand-black">All Locations</option>
+                <option value="Lavington" className="bg-brand-black">Lavington</option>
+                <option value="Kitisuru" className="bg-brand-black">Kitisuru</option>
+                <option value="Muthiga" className="bg-brand-black">Muthiga</option>
+                <option value="Waiyaki Way" className="bg-brand-black">Waiyaki Way</option>
+              </select>
 
-            {/* Price */}
-            <select 
-              value={filters.priceRange}
-              onChange={(e) => updateFilter('priceRange', e.target.value)}
-              className="flex-1 px-6 py-4 bg-[#1a1a1a] border border-white/5 focus:border-brand-gold/50 rounded-2xl font-black text-xs uppercase tracking-widest text-white outline-none"
-            >
-              <option value="All">Any Budget</option>
-              <option value="Under 50k">Under 50k</option>
-              <option value="50k - 150k">50k - 150k</option>
-              <option value="Above 150k">150k+</option>
-            </select>
+              <select 
+                value={filters.priceRange}
+                onChange={(e) => updateFilter('priceRange', e.target.value)}
+                className="bg-transparent px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white outline-none border-none hover:bg-white/5 rounded-2xl transition-all cursor-pointer border-l border-white/5"
+              >
+                <option value="All" className="bg-brand-black">Investment Range</option>
+                <option value="Under 50k" className="bg-brand-black">Under 50k</option>
+                <option value="50k - 150k" className="bg-brand-black">50k - 150k</option>
+                <option value="Above 150k" className="bg-brand-black">150k+</option>
+              </select>
 
-            {/* Beds */}
-            <select 
-              value={filters.beds}
-              onChange={(e) => updateFilter('beds', e.target.value)}
-              className="flex-1 px-6 py-4 bg-[#1a1a1a] border border-white/5 focus:border-brand-gold/50 rounded-2xl font-black text-xs uppercase tracking-widest text-white outline-none"
-            >
-              <option value="All">Any Bed Count</option>
-              <option value="1">1 Bedroom</option>
-              <option value="2">2 Bedrooms</option>
-              <option value="3">3 Bedrooms</option>
-              <option value="4+">4+ Bedrooms</option>
-            </select>
+              <select 
+                value={filters.beds}
+                onChange={(e) => updateFilter('beds', e.target.value)}
+                className="bg-transparent px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white outline-none border-none hover:bg-white/5 rounded-2xl transition-all cursor-pointer border-l border-white/5"
+              >
+                <option value="All" className="bg-brand-black">Any Bed Count</option>
+                <option value="1" className="bg-brand-black">1 Bedroom</option>
+                <option value="2" className="bg-brand-black">2 Bedrooms</option>
+                <option value="3" className="bg-brand-black">3 Bedrooms</option>
+                <option value="4+" className="bg-brand-black">4+ Bedrooms</option>
+              </select>
+            </div>
 
-            {/* Availability */}
             <button 
               onClick={() => updateFilter('availableOnly', !filters.availableOnly)}
-              className={`flex-1 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border ${
+              className={`px-8 py-4 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 filters.availableOnly 
-                ? 'bg-brand-gold border-brand-gold text-brand-black shadow-lg shadow-brand-gold/20' 
-                : 'bg-[#1a1a1a] border-white/5 text-gray-500 hover:text-white'
+                ? 'gold-bg-gradient text-brand-black shadow-lg shadow-brand-gold/20' 
+                : 'bg-white/5 text-gray-500 hover:text-white'
               }`}
             >
-              Available Units Only
+              Available Only
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Main Grid Results */}
-      <main className="max-w-7xl mx-auto w-full px-6 sm:px-12 flex-1 pt-12 pb-24">
+      {/* Portfolio Grid */}
+      <main className="max-w-7xl mx-auto px-6 py-20 min-h-[60vh]">
         {loading ? (
           <ListingSkeleton />
         ) : (
-          <>
-            <div className="flex items-center gap-8 mb-12">
-               <h3 className="text-xs font-black text-brand-gold uppercase tracking-[0.4em] whitespace-nowrap">
-                 {filteredProperties.length} Premium Properties Found
-               </h3>
-               <div className="h-px bg-white/10 flex-1"></div>
+          <div className="space-y-16">
+            <div className="flex items-center justify-between">
+               <h2 className="text-3xl font-serif font-bold text-white">Current Portfolio</h2>
+               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-600">{filteredProperties.length} Matches Found</p>
             </div>
 
             {filteredProperties.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-10">
-                {filteredProperties.map((property, idx) => (
-                  <div 
-                    key={property.id} 
-                    className="animate-in fade-in slide-in-from-bottom-12 duration-700"
-                    style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'both' }}
-                  >
-                    <PropertyCard property={property} onClick={setSelectedProperty} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
+                {filteredProperties.map((p, idx) => (
+                  <div key={p.id} className="animate-reveal" style={{ animationDelay: `${idx * 0.1}s` }}>
+                    <PropertyCard property={p} onClick={setSelectedProperty} />
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="py-32 flex flex-col items-center text-center">
-                <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-8">
-                  <svg className="w-10 h-10 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+              <div className="py-40 flex flex-col items-center text-center">
+                <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center mb-8 text-gray-700">
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeWidth="2" /></svg>
                 </div>
-                <h4 className="text-3xl font-serif font-black text-white mb-4">Refining the Search...</h4>
-                <p className="text-gray-500 font-bold max-w-sm mx-auto leading-relaxed">
-                  We currently have no available units matching these specific filters. Try expanding your luxury criteria.
-                </p>
+                <h3 className="text-3xl font-serif font-black mb-4">No Residences Matching Your Selection</h3>
+                <p className="text-gray-500 max-w-sm font-medium mb-10">We suggest broadening your search criteria or contacting our concierge for private listings.</p>
                 <button 
                   onClick={() => setFilters({ location: 'All', priceRange: 'All', beds: 'All', availableOnly: false })}
-                  className="mt-12 gold-bg-gradient text-brand-black px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-gold/10 active:scale-95 transition-all"
+                  className="px-10 py-5 gold-bg-gradient text-brand-black text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl shadow-xl shadow-brand-gold/20"
                 >
-                  Reset Catalog
+                  Clear Selection
                 </button>
               </div>
             )}
-          </>
+          </div>
         )}
       </main>
 
-      {/* Luxury Footer */}
-      <footer className="bg-[#050505] border-t border-white/5 py-24 px-6 sm:px-12 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-gold/5 rounded-full blur-[80px] opacity-20"></div>
-        <div className="max-w-7xl mx-auto flex flex-col items-center">
-          <Logo className="mb-16" />
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 w-full text-center">
-             <div className="space-y-4">
-               <p className="text-[10px] font-black text-brand-gold uppercase tracking-[0.3em]">Nairobi Office</p>
-               <p className="text-white font-bold text-sm leading-loose">
-                 Westlands, Kenya<br/>
-                 East African Living Specialists
-               </p>
-             </div>
-             <div className="space-y-4">
-               <p className="text-[10px] font-black text-brand-gold uppercase tracking-[0.3em]">Direct Inquiries</p>
-               <p className="text-white font-bold text-sm leading-loose">
-                 +254 724 668 338<br/>
-                 @ramburentals
-               </p>
-             </div>
-             <div className="space-y-4">
-               <p className="text-[10px] font-black text-brand-gold uppercase tracking-[0.3em]">Follow Us</p>
-               <div className="flex justify-center gap-6">
-                 <a href="#" className="text-gray-500 hover:text-brand-gold transition-colors font-bold uppercase tracking-widest text-xs">Instagram</a>
-                 <a href="#" className="text-gray-500 hover:text-brand-gold transition-colors font-bold uppercase tracking-widest text-xs">Twitter</a>
-               </div>
-             </div>
-          </div>
-
-          <div className="mt-24 pt-12 border-t border-white/5 w-full flex flex-col sm:flex-row justify-between items-center gap-8">
-            <p className="text-[9px] font-black text-gray-600 uppercase tracking-[0.4em]">© 2024 RAMBU RENTALS LIMITED. ALL RIGHTS RESERVED.</p>
-            <div className="flex gap-10 text-[9px] font-black text-gray-600 uppercase tracking-[0.4em]">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+      {/* Minimal Business Footer */}
+      <footer className="bg-brand-void pt-32 pb-16 px-6 border-t border-white/5 overflow-hidden relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-px bg-gradient-to-r from-transparent via-brand-gold/30 to-transparent"></div>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row justify-between gap-20 mb-32">
+            <div className="space-y-8 max-w-xs">
+              <Logo className="scale-110 origin-left" />
+              <p className="text-gray-600 text-sm font-medium leading-loose pt-6">
+                Providing exceptional real estate management and acquisition services across East Africa's most prestigious locales.
+              </p>
             </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-16 flex-1">
+              <div>
+                <p className="text-[10px] font-black text-brand-gold uppercase tracking-widest mb-6">Concierge</p>
+                <ul className="space-y-4 text-sm font-bold text-gray-400">
+                  <li><a href="#" className="hover:text-white transition-colors">Portfolio</a></li>
+                  <li><button onClick={() => setShowUpload(true)} className="hover:text-white transition-colors">List Your Property</button></li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-brand-gold uppercase tracking-widest mb-6">Connect</p>
+                <ul className="space-y-4 text-sm font-bold text-gray-400">
+                  <li><a href={siteContent.instagramUrl} className="hover:text-white transition-colors">Instagram</a></li>
+                  <li><a href={`tel:+${siteContent.whatsappNumber}`} className="hover:text-white transition-colors">Direct Inquiry</a></li>
+                  <li><button onClick={handleAdminLogin} className="hover:text-brand-gold transition-colors text-gray-700">Admin Console</button></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-8 text-[9px] font-black uppercase tracking-[0.4em] text-gray-700">
+            <p>© 2024 RAMBU RENTALS LIMITED</p>
+            <p>Your Key to East African Living</p>
           </div>
         </div>
       </footer>
