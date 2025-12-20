@@ -25,12 +25,20 @@
             fontFamily: {
               sans: ['Plus Jakarta Sans', 'sans-serif'],
               serif: ['Playfair Display', 'serif'],
+            },
+            animation: {
+              'float': 'float 6s ease-in-out infinite',
+              'fade-in-up': 'fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'shimmer': 'shimmer 2s linear infinite',
             }
           }
         }
       }
     </script>
     <style>
+      :root {
+        scroll-behavior: smooth;
+      }
       body {
         font-family: 'Plus Jakarta Sans', sans-serif;
         -webkit-font-smoothing: antialiased;
@@ -49,17 +57,45 @@
       .scrollbar-hide::-webkit-scrollbar {
         display: none;
       }
-      @keyframes reveal {
-        from { opacity: 0; transform: translateY(20px); }
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
         to { opacity: 1; transform: translateY(0); }
       }
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+      }
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
       .animate-reveal {
-        animation: reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
       .glass {
         background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .admin-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 1rem 1.25rem;
+        color: white;
+        outline: none;
+        transition: all 0.3s ease;
+      }
+      .admin-input:focus {
+        border-color: #C5A028;
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 20px rgba(197, 160, 40, 0.1);
+      }
+      /* Selection colors */
+      ::selection {
+        background: rgba(197, 160, 40, 0.3);
+        color: white;
       }
     </style>
   <script type="importmap">
