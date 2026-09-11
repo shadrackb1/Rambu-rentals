@@ -1,10 +1,8 @@
-﻿# Rambu rentals
+# Rambu Rentals
 
-Rambu Rentals | Elite East African Living
+<img src="./assets/header.svg" width="100%" alt="Rambu Rentals" />
 
-## Stack
-
-react Â· vite Â· typescript
+Premium rentals across East Africa.
 
 ## Run locally
 
@@ -13,4 +11,4 @@ react Â· vite Â· typescript
 
 ## License
 
-Private / all rights reserved.
+All rights reserved.
